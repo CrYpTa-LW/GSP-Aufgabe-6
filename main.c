@@ -23,7 +23,7 @@ int main(void)
 	timerinit();
 	TIM2->ARR = 0xFFFF;   //84000000
 	TIM2->SR &= ~0x1;
-	GPIOG->ODR = 0x8000;
+	TIM2->PSC = 60;
 	
 	act1();
 	
@@ -48,14 +48,18 @@ int checkEvent()
 	int num = -1;
 	int buttons = GPIOE->IDR;
 	int taste0 = buttons & 0x01;
+	int taste1 = buttons & 0x02;
+	int taste2 = buttons & 0x04;
 	static int taste0alt = 1;
+	static int taste1alt = 1;
+	static int taste2alt = 1;
 	
 	if((TIM2->SR & 0x01) == 1)
 	{
 		TIM2->SR &= ~0x01;
 		return 4;
 	}
-	
+	//------------------------------------------
 	if(taste0 != taste0alt)
 	{
 		if(taste0 == 0)
@@ -69,7 +73,19 @@ int checkEvent()
 			return 1;
 		}
 	}
-	
+	//-------------------------------------
+	if(taste1 != taste1alt)
+	{
+		taste1alt = taste1;
+		return 2;
+	}
+	//-------------------------------------
+	if(taste2 != taste2alt)
+	{
+		taste2alt = taste2;
+		return 3;
+	}
+	//----------------------------------------
 	if(taste0 == taste0alt)
 	{
 		if(taste0 == 0)
@@ -81,29 +97,9 @@ int checkEvent()
 			return 1;
 		}
 	}
-	
-	if(taste0 == 0)
-	{
-		return 0;
-	}
-		
-	if(taste0 == 1)
-	{
-		return 1;
-	}
-	
-	if((buttons & 0x02) == 0)
-	{
-		return 2;
-	}
-	
-	if((buttons & 0x04) == 0)
-	{
-		return 3;
-	}
-	
 	return num;
 }
+
 
 void noact()
 {
@@ -116,17 +112,18 @@ void act0() //Ausgabe Blinklicht
 
 void act1() //Ausgabe Lauflicht
 {
+	GPIOG->ODR = 0x8000;
 	TFT_puts("Lauflicht\n\r");
 }
 
 void act2() //Schneller
 {
-	TIM2->ARR = TIM1->ARR * 1.2;
+	TIM2->PSC = TIM2->PSC *1.2;
 }
 
 void act3() //Langsamer
 {
-	TIM2->ARR = TIM1->ARR * 0.8;
+	TIM2->PSC = TIM2->PSC *0.8;
 }
 
 void act4() //NextLauflicht
