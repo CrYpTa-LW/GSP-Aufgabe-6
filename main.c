@@ -21,9 +21,11 @@ int main(void)
 {
   Init_TI_Board(); 
 	timerinit();
+	//Setzte timer auf 200 milisekunden
 	TIM2->ARR = 0xFFFF;   //84000000
 	TIM2->SR &= ~0x1;
 	TIM2->PSC = 60;
+	
 	
 	act1();
 	
@@ -43,6 +45,7 @@ void fsm(int ev)
 	state = ERTab[state][ev].NextState;
 }
 
+//Überprüft ob bestimmte evente aufgetreten sind
 int checkEvent()
 {
 	int num = -1;
@@ -54,12 +57,13 @@ int checkEvent()
 	static int taste1alt = 1;
 	static int taste2alt = 1;
 	
+	//Überprüfe ob timer abgelaufen ist
 	if((TIM2->SR & 0x01) == 1)
 	{
 		TIM2->SR &= ~0x01;
 		return 4;
 	}
-	//------------------------------------------
+	//Überprüfe ob sich Taste 0 geändert hat
 	if(taste0 != taste0alt)
 	{
 		if(taste0 == 0)
@@ -73,19 +77,19 @@ int checkEvent()
 			return 1;
 		}
 	}
-	//-------------------------------------
+	//Überprüfe ob Taste 1 gedrückt wurde -> Schneller
 	if(taste1 != taste1alt)
 	{
 		taste1alt = taste1;
 		return 2;
 	}
-	//-------------------------------------
+	//Überprüfe ob Taste 2 gedrückt wurde -> Langsamer
 	if(taste2 != taste2alt)
 	{
 		taste2alt = taste2;
 		return 3;
 	}
-	//----------------------------------------
+	//Überprüfe ob Taste 0 gleich geblieben ist -> Mache nichts
 	if(taste0 == taste0alt)
 	{
 		if(taste0 == 0)
@@ -100,7 +104,7 @@ int checkEvent()
 	return num;
 }
 
-
+//Mache nichts
 void noact()
 {
 }
